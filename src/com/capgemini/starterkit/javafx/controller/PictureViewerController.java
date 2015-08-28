@@ -82,8 +82,20 @@ public class PictureViewerController {
 
 		stateLabel.setText(selected.getAbsolutePath());
 
-		Collection<PictureVO> result = dataProvider.findPictures(selected.getAbsolutePath());
-		model.setResult(new ArrayList<PictureVO>(result));
-		pictureTable.getSortOrder().clear();
+		Task<Collection<PictureVO>> backgroundTask = new Task<Collection<PictureVO>>() {
+
+			@Override
+			protected Collection<PictureVO> call() throws Exception {
+				Collection<PictureVO> result = dataProvider.findPictures(selected.getAbsolutePath());
+				return result;
+			}
+
+			@Override
+			protected void succeeded(){
+				model.setResult(new ArrayList<PictureVO>(getValue()));
+				pictureTable.getSortOrder().clear();
+			}
+		};
+		new Thread(backgroundTask).start();
 	}
 }
