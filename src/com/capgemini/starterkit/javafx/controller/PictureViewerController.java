@@ -55,6 +55,9 @@ public class PictureViewerController {
 
 					@Override
 					protected Void call() throws Exception {
+						/*
+						 * REV: modyfikacja kontrolek GUI musi odbywac sie w watku JavaFX
+						 */
 						setImageOnImageView(newValue);
 						return null;
 					}
@@ -68,6 +71,9 @@ public class PictureViewerController {
 		if(picture != null){
 			File file = new File(picture.getFilePath());
 			final Image image2 = new Image(file.toURI().toString());
+			/*
+			 * REV: te dwa bindy powinny byc zdefiniowane w metodzie initialize()
+			 */
 			imageArea.fitWidthProperty().bind(pane.widthProperty());
 			imageArea.fitHeightProperty().bind(pane.heightProperty());
 			imageArea.setImage(image2);
@@ -77,9 +83,15 @@ public class PictureViewerController {
 	@FXML
 	private void changeDirButtonAction() {
 		DirectoryChooser chooser = new DirectoryChooser();
+		/*
+		 * REV: zadziala tylko na Windowsie
+		 */
 		chooser.setInitialDirectory(new File("C:\\"));
 		File selected = chooser.showDialog(imageArea.getScene().getWindow());
 
+		/*
+		 * REV: zmienna 'selected' jest nullem, gdy uzytkownik kliknie Cancel w oknie wyboru katalogu
+		 */
 		stateLabel.setText(selected.getAbsolutePath());
 
 		Task<Collection<PictureVO>> backgroundTask = new Task<Collection<PictureVO>>() {
