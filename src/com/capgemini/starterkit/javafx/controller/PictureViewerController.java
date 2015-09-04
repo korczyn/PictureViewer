@@ -25,15 +25,24 @@ import javafx.stage.DirectoryChooser;
 
 public class PictureViewerController {
 
-	@FXML TableView<PictureVO> pictureTable;
-	@FXML TableColumn<PictureVO, String> fileNameColumn;
-	@FXML Label fileNameLabel;
-	@FXML Label fileSizeLabel;
-	@FXML ImageView imageArea;
-	@FXML Pane pane;
-	@FXML Button pickDirButton;
-	@FXML TextField dirField;
-	@FXML Label stateLabel;
+	@FXML
+	TableView<PictureVO> pictureTable;
+	@FXML
+	TableColumn<PictureVO, String> fileNameColumn;
+	@FXML
+	Label fileNameLabel;
+	@FXML
+	Label fileSizeLabel;
+	@FXML
+	ImageView imageArea;
+	@FXML
+	Pane pane;
+	@FXML
+	Button pickDirButton;
+	@FXML
+	TextField dirField;
+	@FXML
+	Label stateLabel;
 
 	private final DataProvider dataProvider = DataProvider.INSTANCE;
 	private Picture model = new Picture();
@@ -51,25 +60,17 @@ public class PictureViewerController {
 			@Override
 			public void changed(ObservableValue<? extends PictureVO> observable, PictureVO oldValue,
 					PictureVO newValue) {
-				Task<Void> backgroundTask = new Task<Void>(){
-
-					@Override
-					protected Void call() throws Exception {
-						setImageOnImageView(newValue);
-						return null;
-					}
-				};
-				new Thread(backgroundTask).start();
+				imageArea.fitWidthProperty().bind(pane.widthProperty());
+				imageArea.fitHeightProperty().bind(pane.heightProperty());
+				setImageOnImageView(newValue);
 			}
 		});
 	}
 
-	private void setImageOnImageView(PictureVO picture){
-		if(picture != null){
+	private void setImageOnImageView(PictureVO picture) {
+		if (picture != null) {
 			File file = new File(picture.getFilePath());
 			final Image image2 = new Image(file.toURI().toString());
-			imageArea.fitWidthProperty().bind(pane.widthProperty());
-			imageArea.fitHeightProperty().bind(pane.heightProperty());
 			imageArea.setImage(image2);
 		}
 	}
@@ -77,25 +78,28 @@ public class PictureViewerController {
 	@FXML
 	private void changeDirButtonAction() {
 		DirectoryChooser chooser = new DirectoryChooser();
-		chooser.setInitialDirectory(new File("C:\\"));
 		File selected = chooser.showDialog(imageArea.getScene().getWindow());
 
-		stateLabel.setText(selected.getAbsolutePath());
+		if (selected != null) {
 
-		Task<Collection<PictureVO>> backgroundTask = new Task<Collection<PictureVO>>() {
+			stateLabel.setText(selected.getAbsolutePath());
+			Task<Collection<PictureVO>> backgroundTask = new Task<Collection<PictureVO>>() {
 
-			@Override
-			protected Collection<PictureVO> call() throws Exception {
-				Collection<PictureVO> result = dataProvider.findPictures(selected.getAbsolutePath());
-				return result;
-			}
+				@Override
+				protected Collection<PictureVO> call() throws Exception {
+					Collection<PictureVO> result = dataProvider.findPictures(selected.getAbsolutePath());
+					return result;
+				}
 
-			@Override
-			protected void succeeded(){
-				model.setResult(new ArrayList<PictureVO>(getValue()));
-				pictureTable.getSortOrder().clear();
-			}
-		};
-		new Thread(backgroundTask).start();
+				@Override
+				protected void succeeded() {
+					model.setResult(new ArrayList<PictureVO>(getValue()));
+					pictureTable.getSortOrder().clear();
+				}
+			};
+			new Thread(backgroundTask).start();
+		} else {
+			stateLabel.setText("Directory not selected");
+		}
 	}
 }
